@@ -125,6 +125,7 @@ type Color struct {
 
 type Mode struct {
 	Color       Color
+	RandomColor bool
 	EffectValue uint8
 	Brightness  uint8
 	Speed       uint8

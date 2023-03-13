@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/mishamyrt/go-keychron"
-	"github.com/sstallion/go-hid"
 )
 
 const k3v2optical = 0x024F
@@ -10,7 +9,6 @@ const k3v2optical = 0x024F
 func main() {
 	k, err := keychron.Open(k3v2optical)
 	if err != nil {
-		hid.Exit()
 		panic(err)
 	}
 	defer k.Close()
@@ -22,7 +20,7 @@ func main() {
 		},
 		Brightness:  keychron.MaxBrightness,
 		Speed:       keychron.MinSpeed,
-		EffectValue: keychron.RainModeValue,
+		EffectValue: keychron.RingGradientModeValue,
 		Direction:   keychron.DirectionDTU,
 	})
 }

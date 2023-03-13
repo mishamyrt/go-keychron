@@ -2,7 +2,6 @@ package keychron
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"time"
 
@@ -58,13 +57,19 @@ func (k *Keyboard) Close() error {
 
 func (k *Keyboard) Set(mode Mode) {
 	k.setCustomization(false)
-	k.requestWrite(1)
+	k.requestWrite(18)
+
+	k.SendEffects()
 
 	buf := make([]byte, PacketLength)
-	buf[0] = mode.EffectValue
+	buf[0] = RingGradientModeValue
 	buf[1] = mode.Color.Red
 	buf[2] = mode.Color.Green
 	buf[3] = mode.Color.Blue
+
+	if mode.RandomColor {
+		buf[8] = 1
+	}
 	buf[9] = mode.Brightness
 	buf[10] = mode.Speed
 	buf[11] = mode.Direction
@@ -129,7 +134,6 @@ func (k *Keyboard) SendEffects() error {
 		}
 		k.Send(buf)
 	}
-	k.applyEffects()
 	return nil
 }
 
@@ -210,13 +214,11 @@ func Open(productId uint16) (Keyboard, error) {
 	}
 	hid.SetOpenExclusive(false)
 	for i := 0; i < 50; i++ {
-		fmt.Println("Attempt", i)
 		err = k.tryOpen(productId)
 		if err == nil {
-			fmt.Println("Found!")
 			return k, nil
 		}
 	}
-	fmt.Println("Not found(")
+	hid.Exit()
 	return k, err
 }
