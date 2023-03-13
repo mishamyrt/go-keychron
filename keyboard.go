@@ -62,7 +62,7 @@ func (k *Keyboard) Set(mode Mode) {
 	k.SendEffects()
 
 	buf := make([]byte, PacketLength)
-	buf[0] = RingGradientModeValue
+	buf[0] = mode.EffectValue
 	buf[1] = mode.Color.Red
 	buf[2] = mode.Color.Green
 	buf[3] = mode.Color.Blue
