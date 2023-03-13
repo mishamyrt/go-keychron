@@ -15,14 +15,14 @@ const DirectionUTD = 0x03
 const MinSpeed = 0x00
 const MaxSpeed = 0x0F
 
-const MinBrightness = 0x00
+const MinBrightness = 0x01
 const MaxBrightness = 0x0F
 
 const EffectPageCRCLow = 0xAA
 const EffectPageCRCHigh = 0x55
 
 const PacketHeader = 0x04
-const LEDSpecialEffectPacket = 0x12
+const CustomColorHeader = 0x80
 
 const CustomModeValue = 0x00
 const StaticModeValue = 0x01
@@ -47,6 +47,7 @@ const BackAndForthModeValue = 0x13
 const LightsOffModeValue = 0x80
 
 const CommunicationEndCommand = 0x02
+const ReadEffectsCommand = 0x12
 const WriteLEDSpecialEffectAreaCommand = 0x13
 const TurnOnCustomizationCommand = 0x18
 const TurnOffCustomizationCommand = 0x19

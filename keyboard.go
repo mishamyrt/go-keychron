@@ -16,22 +16,6 @@ type Keyboard struct {
 	Debug bool
 }
 
-func (k *Keyboard) SendRaw(packet []byte) error {
-	buf := make([]byte, PacketLength)
-
-	for x := 0; x < len(packet); x++ {
-		buf[x] = packet[x]
-	}
-
-	_, err := k.dev.SendFeatureReport(buf)
-	if err != nil {
-		return err
-	}
-
-	k.waitSync()
-	return nil
-}
-
 func (k *Keyboard) Send(packet []byte) error {
 	buf := make([]byte, PacketLength+1)
 	buf[0] = ReportID
@@ -39,6 +23,8 @@ func (k *Keyboard) Send(packet []byte) error {
 	for x := 0; x < len(packet); x++ {
 		buf[x+1] = packet[x]
 	}
+
+	log.Println("Sending", buf)
 
 	_, err := k.dev.SendFeatureReport(buf)
 	if err != nil {
@@ -66,99 +52,29 @@ func (k *Keyboard) Close() error {
 	return k.dev.Close()
 }
 
-func (k *Keyboard) Test() {
+func (k *Keyboard) Set() {
 	var buf []byte
-	c := Color{
+	color := Color{
 		Red:   255,
 		Green: 0,
 		Blue:  255,
 	}
+	brightness := mapBrightness(255)
+	var mode uint8 = RandomColorsModeValue
+	speed := 0x01
 
-	k.setCustomization(true)
+	k.setCustomization(false)
 	k.requestWrite(18)
-	// Effects
-	k.Send([]byte{
-		// 0,     1,       2,      3,    4,    5,    6,    7,    8,    9,   10,   11,   12,   13,   14,   15
-		0x01, c.Red, c.Green, c.Blue, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x0c, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x02, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x03, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x04, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-	})
-	k.Send([]byte{
-		0x05, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x06, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x07, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x08, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-	})
-	k.Send([]byte{
-		0x09, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x0a, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x0b, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x01, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x0c, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-	})
-	k.Send([]byte{
-		0x0d, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x0e, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x0f, 0xff, 0x9b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x10, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-	})
-	k.Send([]byte{
-		0x11, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x12, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x01, 0x00, 0x00, 0xaa, 0x55,
-		0x13, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0F, 0x00, 0x00, 0x00, 0xaa, 0x55,
-		0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0xaa, 0x55,
-	})
 
-	buf = make([]byte, PacketLength)
-	for i := 0; i < 3; i++ {
-		err := k.Send(buf)
-		if err != nil {
-			log.Println("Error while writing empty packet", err)
-		}
-	}
-
-	for i := 0; i < 9; i++ {
-		buf = make([]byte, PacketLength)
-		for j := 0; j < EffectPageLength; j++ {
-			buf[j*4] = 0x80
-			buf[j*4+1] = c.Red
-			buf[j*4+2] = c.Green
-			buf[j*4+3] = c.Blue
-		}
-		k.Send(buf)
-	}
-
-	// Current effect
-	buf = make([]byte, PacketLength)
-	buf[0x00] = RingGradientModeValue
-	buf[0x01] = c.Red
-	buf[0x02] = c.Green
-	buf[0x03] = c.Blue
-	buf[0x09] = MaxBrightness
-	buf[0x0A] = MinSpeed
-	buf[0x0E] = 0xaa
-	buf[0x0F] = 0x55
-	k.Send(buf)
-
-	k.endCommunication()
-	k.applyEffects()
-}
-
-func (k *Keyboard) SetModes(modes []Mode, active uint8) error {
-	var buf []byte
-	var selectedMode = make([]byte, EffectPageLength)
-	var err error
-
-	k.setCustomization(active == CustomModeValue)
-	k.requestWrite(2)
-
+	fmt.Println("\n\nWriting effects")
 	for i := 0; i < 5; i++ { // 5 packets
 		buf = make([]byte, PacketLength) // of 4 effects
 		for j := 0; j < 4; j++ {
-			if len(modes) <= j+(i*4) {
+			modeOffset := j + (i * 4)
+			if modeOffset >= len(Modes) {
 				continue
 			}
-			m := modes[j+(i*4)]
+			m := Modes[j+(i*4)]
 			offset := j * EffectPageLength
 
 			buf[offset+0] = m.EffectValue // mode value
@@ -167,92 +83,57 @@ func (k *Keyboard) SetModes(modes []Mode, active uint8) error {
 			buf[offset+2] = m.Color.Green
 			buf[offset+3] = m.Color.Blue
 
-			buf[offset+8] = 0 // Random color, disable for now
+			buf[offset+8] = 1
 			buf[offset+9] = m.Brightness
 			buf[offset+10] = m.Speed
 			buf[offset+11] = m.Direction
 
 			buf[offset+14] = EffectPageCRCLow
 			buf[offset+15] = EffectPageCRCHigh
-
-			if m.EffectValue == active {
-				buf[offset+9] = MaxBrightness
-				for x := 0; x < EffectPageLength; x++ {
-					selectedMode[x] = buf[offset+x]
-				}
-			}
 		}
 		log.Printf("Effects page %x: %v", i+1, buf)
-		err = k.Send(buf)
+		err := k.Send(buf)
 		if err != nil {
 			log.Println("Error while writing page", err)
-			return err
 		}
-		k.Read()
 	}
 
-	// 3 times an empty packet - guess why...
+	fmt.Println("\n\nWriting empty")
 	buf = make([]byte, PacketLength)
 	for i := 0; i < 3; i++ {
-		err = k.Send(buf)
+		err := k.Send(buf)
 		if err != nil {
 			log.Println("Error while writing empty packet", err)
-			return err
 		}
 	}
 
-	// Customization stuff
-	// 9 times * 16 blocks 80 RR GG BB
-
-	// colorBuf := make([]byte, ColorBufSize)
-	// for i := 0; i < ColorBufSize; i += 4 {
-	// 	colorBuf[i] = 0x80
-	// 	colorBuf[i+1] = color.Red
-	// 	colorBuf[i+2] = color.Green
-	// 	colorBuf[i+3] = color.Blue
-	// }
-
-	// for p := 0; p < 9; p++ {
-	// 	for x := 0; x < EffectPageLength; x++ {
-	// 		buf[x] = colorBuf[p*PacketLength+x]
-	// 		err = k.Send(buf)
-	// 		if err != nil {
-	// 			log.Println("Error while writing color page", err)
-	// 			return err
-	// 		}
-	// 	}
-	// }
-
-	log.Println("Selected:", selectedMode)
-	for i := 0; i < EffectPageLength; i++ {
-		buf[i] = selectedMode[i]
-	}
-	err = k.Send(buf)
-	if err != nil {
-		log.Println("Error while writing selected mode", err)
-		return err
+	fmt.Println("\n\nWriting custom colors")
+	for i := 0; i < 9; i++ {
+		buf = make([]byte, PacketLength)
+		for j := 0; j < EffectPageLength; j++ {
+			buf[j*4] = CustomColorHeader
+			buf[j*4+1] = color.Red
+			buf[j*4+2] = color.Green
+			buf[j*4+3] = color.Blue
+		}
+		k.Send(buf)
 	}
 
-	err = k.endCommunication()
-	if err != nil {
-		log.Println("Error while ending communication", err)
-		return err
-	}
+	fmt.Println("\n\nWriting current effect")
+	buf = make([]byte, PacketLength)
+	buf[0x00] = mode
+	buf[0x01] = color.Red
+	buf[0x02] = color.Green
+	buf[0x03] = color.Blue
+	buf[0x09] = brightness
+	buf[0x0A] = byte(speed)
+	buf[0x0E] = 0xaa
+	buf[0x0F] = 0x55
+	k.Send(buf)
 
-	// err = k.applyEffects()
-	// if err != nil {
-	// 	log.Println("Error while starting effect", err)
-	// 	return err
-	// }
-	// buf = make([]byte, PacketLength)
-	// for i := 0; i < 3; i++ {
-	// 	err = k.Send(buf)
-	// 	if err != nil {
-	// 		log.Println("Error while writing empty packet", err)
-	// 		return err
-	// 	}
-	// }
-	return nil
+	fmt.Println("\n\nFinalizing")
+	k.endCommunication()
+	k.applyEffects()
 }
 
 func (k *Keyboard) waitSync() {

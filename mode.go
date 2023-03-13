@@ -131,13 +131,17 @@ type Mode struct {
 	Direction   uint8
 }
 
-func CreateModes(color Color, brightness uint8) []Mode {
+func CreateModes() []Mode {
 	modes := make([]Mode, len(Effects))
 	for i := 0; i < len(Effects); i++ {
 		e := Effects[i]
 		modes[i].EffectValue = e.value
 		if e.flags.Has(SpecificColor) {
-			modes[i].Color = color
+			modes[i].Color = Color{
+				Red:   255,
+				Green: 255,
+				Blue:  255,
+			}
 		}
 		if e.flags.Has(DirectionHorizontal) {
 			modes[i].Direction = DirectionLTR
@@ -146,7 +150,7 @@ func CreateModes(color Color, brightness uint8) []Mode {
 		}
 
 		modes[i].Speed = MaxSpeed
-		modes[i].Brightness = mapBrightness(brightness)
+		modes[i].Brightness = MaxBrightness
 	}
 	return modes
 }
@@ -155,3 +159,5 @@ func mapBrightness(value uint8) uint8 {
 	var output float64 = MinBrightness + (float64(MaxBrightness-MinBrightness)/255)*float64(value)
 	return uint8(output)
 }
+
+var Modes = CreateModes()
