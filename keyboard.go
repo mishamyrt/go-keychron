@@ -24,7 +24,9 @@ func (k *Keyboard) Send(packet []byte) error {
 		buf[x+1] = packet[x]
 	}
 
-	log.Println("Sending", buf)
+	if k.Debug {
+		log.Println("Send", buf)
+	}
 
 	_, err := k.dev.SendFeatureReport(buf)
 	if err != nil {
@@ -43,7 +45,9 @@ func (k *Keyboard) Read() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Readed: ", buf)
+	if k.Debug {
+		log.Println("Read", buf)
+	}
 	k.waitSync()
 	return nil
 }
@@ -52,24 +56,33 @@ func (k *Keyboard) Close() error {
 	return k.dev.Close()
 }
 
-func (k *Keyboard) Set() {
-	var buf []byte
-	color := Color{
-		Red:   255,
-		Green: 0,
-		Blue:  255,
-	}
-	brightness := mapBrightness(255)
-	var mode uint8 = RandomColorsModeValue
-	speed := 0x01
-
+func (k *Keyboard) Set(mode Mode) {
 	k.setCustomization(false)
-	k.requestWrite(18)
+	k.requestWrite(1)
 
-	fmt.Println("\n\nWriting effects")
+	buf := make([]byte, PacketLength)
+	buf[0] = mode.EffectValue
+	buf[1] = mode.Color.Red
+	buf[2] = mode.Color.Green
+	buf[3] = mode.Color.Blue
+	buf[9] = mode.Brightness
+	buf[10] = mode.Speed
+	buf[11] = mode.Direction
+	buf[14] = EffectPageCRCLow
+	buf[15] = EffectPageCRCHigh
+
+	k.Send(buf)
+	k.endCommunication()
+}
+
+// Send effects to Keyboard.
+func (k *Keyboard) SendEffects() error {
+	var buf []byte
+	var err error
+
 	for i := 0; i < 5; i++ { // 5 packets
-		buf = make([]byte, PacketLength) // of 4 effects
-		for j := 0; j < 4; j++ {
+		buf = make([]byte, PacketLength)
+		for j := 0; j < 4; j++ { // of 4 effects
 			modeOffset := j + (i * 4)
 			if modeOffset >= len(Modes) {
 				continue
@@ -77,13 +90,12 @@ func (k *Keyboard) Set() {
 			m := Modes[j+(i*4)]
 			offset := j * EffectPageLength
 
-			buf[offset+0] = m.EffectValue // mode value
-
+			buf[offset+0] = m.EffectValue
 			buf[offset+1] = m.Color.Red
 			buf[offset+2] = m.Color.Green
 			buf[offset+3] = m.Color.Blue
 
-			buf[offset+8] = 1
+			buf[offset+8] = 1 // Random switch
 			buf[offset+9] = m.Brightness
 			buf[offset+10] = m.Speed
 			buf[offset+11] = m.Direction
@@ -91,53 +103,39 @@ func (k *Keyboard) Set() {
 			buf[offset+14] = EffectPageCRCLow
 			buf[offset+15] = EffectPageCRCHigh
 		}
-		log.Printf("Effects page %x: %v", i+1, buf)
-		err := k.Send(buf)
+		err = k.Send(buf)
 		if err != nil {
-			log.Println("Error while writing page", err)
+			return err
 		}
 	}
 
-	fmt.Println("\n\nWriting empty")
+	// For some reason you have to send 3 empty packets between effects and colors ¯\_(ツ)_/¯
 	buf = make([]byte, PacketLength)
 	for i := 0; i < 3; i++ {
-		err := k.Send(buf)
+		err = k.Send(buf)
 		if err != nil {
-			log.Println("Error while writing empty packet", err)
+			return err
 		}
 	}
 
-	fmt.Println("\n\nWriting custom colors")
+	// Colors for custom mode, 9 packets
 	for i := 0; i < 9; i++ {
 		buf = make([]byte, PacketLength)
 		for j := 0; j < EffectPageLength; j++ {
 			buf[j*4] = CustomColorHeader
-			buf[j*4+1] = color.Red
-			buf[j*4+2] = color.Green
-			buf[j*4+3] = color.Blue
+			buf[j*4+1] = 0xFF // R
+			buf[j*4+2] = 0xFF // G
+			buf[j*4+3] = 0xFF // B
 		}
 		k.Send(buf)
 	}
-
-	fmt.Println("\n\nWriting current effect")
-	buf = make([]byte, PacketLength)
-	buf[0x00] = mode
-	buf[0x01] = color.Red
-	buf[0x02] = color.Green
-	buf[0x03] = color.Blue
-	buf[0x09] = brightness
-	buf[0x0A] = byte(speed)
-	buf[0x0E] = 0xaa
-	buf[0x0F] = 0x55
-	k.Send(buf)
-
-	fmt.Println("\n\nFinalizing")
-	k.endCommunication()
 	k.applyEffects()
+	return nil
 }
 
+// Waiting for data to be written. According to the documentation, it takes 10 ms to do this
 func (k *Keyboard) waitSync() {
-	time.Sleep(time.Millisecond * 15)
+	time.Sleep(time.Millisecond * 10)
 }
 
 func (k *Keyboard) setCustomization(state bool) error {

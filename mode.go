@@ -155,9 +155,9 @@ func CreateModes() []Mode {
 	return modes
 }
 
-func mapBrightness(value uint8) uint8 {
-	var output float64 = MinBrightness + (float64(MaxBrightness-MinBrightness)/255)*float64(value)
-	return uint8(output)
-}
+// func mapBrightness(value uint8) uint8 {
+// 	var output float64 = MinBrightness + (float64(MaxBrightness-MinBrightness)/255)*float64(value)
+// 	return uint8(output)
+// }
 
 var Modes = CreateModes()
