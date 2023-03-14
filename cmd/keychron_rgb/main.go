@@ -1,26 +1,20 @@
 package main
 
 import (
+	"image/color"
+
 	"github.com/mishamyrt/go-keychron"
+	"github.com/mishamyrt/go-keychron/pkg/effect"
+	"github.com/mishamyrt/go-keychron/pkg/hid"
 )
 
-const k3v2optical = 0x024F
-
 func main() {
-	k, err := keychron.Open(k3v2optical)
+	hid.Init()
+	b, err := keychron.Open(hid.K3V2Optical)
 	if err != nil {
 		panic(err)
 	}
-	defer k.Close()
-	k.Set(keychron.Mode{
-		Color: keychron.Color{
-			Red:   0,
-			Green: 255,
-			Blue:  0,
-		},
-		Brightness:  keychron.MaxBrightness,
-		Speed:       keychron.MinSpeed,
-		EffectValue: keychron.RingGradientModeValue,
-		Direction:   keychron.DirectionDTU,
-	})
+	m, _ := effect.Get(effect.RainMode)
+	m.Color = color.RGBA{0, 255, 255, 0}
+	b.Set(m)
 }
