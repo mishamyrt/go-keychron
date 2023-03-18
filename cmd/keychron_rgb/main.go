@@ -3,14 +3,14 @@ package main
 import (
 	"image/color"
 
-	"github.com/mishamyrt/go-keychron"
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
+	"github.com/mishamyrt/go-keychron/pkg/keyboard"
 )
 
 func main() {
 	hid.Init()
-	b, err := keychron.Open(hid.K3V2Optical)
+	b, err := keyboard.Open(hid.K3V2Optical)
 	if err != nil {
 		panic(err)
 	}
@@ -22,6 +22,7 @@ func main() {
 		panic(err)
 	}
 	// fmt.Println(current)
+	// m.Code = 0
 	err = b.Set(m)
 	if err != nil {
 		panic(err)

@@ -1,7 +1,8 @@
-package keychron
+package keyboard
 
 import (
 	"fmt"
+	"image/color"
 	"log"
 
 	"github.com/mishamyrt/go-keychron/pkg/effect"
@@ -79,8 +80,7 @@ func (b *Backlight) Close() error {
 }
 
 func (b *Backlight) Set(m effect.Mode) error {
-	// TODO: Fix the custom mode
-	// k.setCustomization(false)
+	b.setCustomization(false)
 
 	err := b.requestEffectPages(WriteLEDEffects)
 	if err != nil {
@@ -99,6 +99,11 @@ func (b *Backlight) Set(m effect.Mode) error {
 		return ErrNotInSync
 	}
 	err = b.sendEffects()
+	if err != nil {
+		return err
+	}
+	colors := make([]color.RGBA, 144)
+	err = b.sendCustom(colors)
 	if err != nil {
 		return err
 	}
@@ -155,16 +160,29 @@ func (b *Backlight) sendEffects() error {
 		}
 	}
 
-	// Colors for custom mode, 9 packets
+	return nil
+}
+
+// sendCustom sends 144 color keys for custom mode, 9 packets
+func (b *Backlight) sendCustom(colors []color.RGBA) error {
+	var buf []byte
+	if len(colors) != 144 {
+		return ErrColorsMiscount
+	}
+	c := 0
 	for i := 0; i < 9; i++ {
 		buf = make([]byte, hid.PacketLength)
 		for j := 0; j < EffectPageLength; j++ {
 			buf[j*4] = CustomColorHeader
-			buf[j*4+1] = 0xFF // R
-			buf[j*4+2] = 0xFF // G
-			buf[j*4+3] = 0xFF // B
+			buf[j*4+1] = colors[c].R // R
+			buf[j*4+2] = colors[c].G // G
+			buf[j*4+3] = colors[c].B // B
+			c++
 		}
-		b.handle.Send(buf)
+		err := b.handle.Send(buf)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -207,13 +225,20 @@ func (b *Backlight) endCommunication() error {
 	}
 }
 
-func (b *Backlight) applyEffects() error {
+func (b *Backlight) setCustomization(active bool) error {
 	b.printDebug("Applying effects")
-	err := b.handle.Send([]byte{PacketHeader, ApplyLEDEffects})
+	var cmd byte
+	if active {
+		cmd = TurnOnCustomization
+	} else {
+		cmd = TurnOffCustomization
+	}
+	err := b.handle.Send([]byte{PacketHeader, cmd})
 	if err != nil {
 		return err
 	}
-	_, err = b.handle.Read()
+	buf, err := b.handle.Read()
+	fmt.Println(buf)
 	return err
 }
 

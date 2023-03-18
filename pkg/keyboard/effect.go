@@ -1,4 +1,4 @@
-package keychron
+package keyboard
 
 import (
 	"github.com/mishamyrt/go-keychron/pkg/effect"

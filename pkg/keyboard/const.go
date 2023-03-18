@@ -1,4 +1,4 @@
-package keychron
+package keyboard
 
 const PacketHeader = 0x04
 const CustomColorHeader = 0x80
