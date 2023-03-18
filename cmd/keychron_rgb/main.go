@@ -14,7 +14,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	// b.SetDebug(true)
 	m, _ := effect.Get(effect.RainMode)
 	m.Color = color.RGBA{0, 255, 255, 0}
-	b.Set(m)
+	// current, err := b.Get()
+	if err != nil {
+		panic(err)
+	}
+	// fmt.Println(current)
+	err = b.Set(m)
+	if err != nil {
+		panic(err)
+	}
+	// b.ReadEffect()
+	// b.TestEnd()
 }

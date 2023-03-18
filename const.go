@@ -13,6 +13,12 @@ const (
 )
 
 const (
+	CmdACK  = 0x01
+	CmdNACK = 0xFF
+)
+
+const (
+	EffectPages      = 18
 	EffectPageLength = 16
 	EffectCRCLow     = 0xAA
 	EffectCRCHigh    = 0x55

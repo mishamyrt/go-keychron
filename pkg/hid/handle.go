@@ -45,19 +45,21 @@ func (h *Handle) Send(payload []byte) error {
 }
 
 // Read packet from the device.
-func (h *Handle) Read() error {
-	packet := make([]byte, PacketLength+1)
-	packet[0] = ReportID
+func (h *Handle) Read() ([]byte, error) {
+	buf := make([]byte, PacketLength+1)
+	buf[0] = ReportID
 
-	_, err := h.Device.GetFeatureReport(packet)
+	_, err := h.Device.GetFeatureReport(buf)
 	if err != nil {
-		return err
+		return buf, err
 	}
+	packet := buf[1:]
 	if h.Debug {
 		log.Printf("Read: %v", packet)
 	}
 	h.waitSync()
-	return nil
+	// Cut report id
+	return packet, nil
 }
 
 // Close device handle.
