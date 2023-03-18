@@ -3,6 +3,7 @@ package main
 import (
 	"image/color"
 
+	"github.com/mishamyrt/go-keychron"
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
@@ -10,7 +11,7 @@ import (
 
 func main() {
 	hid.Init()
-	b, err := keyboard.Open(hid.K3V2Optical)
+	b, err := keyboard.Open(keychron.K3v2Optical)
 	if err != nil {
 		panic(err)
 	}
@@ -23,7 +24,14 @@ func main() {
 	}
 	// fmt.Println(current)
 	// m.Code = 0
-	err = b.Set(m)
+	colors := make([]color.RGBA, 144)
+	selectedNumbers := []int{
+		19, 35, 36, 51, 21, 66,
+	}
+	for i := 0; i < len(selectedNumbers); i++ {
+		colors[selectedNumbers[i]] = color.RGBA{255, 255, 255, 0}
+	}
+	err = b.SetCustom(colors, effect.Brightest)
 	if err != nil {
 		panic(err)
 	}

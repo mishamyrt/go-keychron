@@ -79,6 +79,43 @@ func (b *Backlight) Close() error {
 	return b.handle.Close()
 }
 
+func (b *Backlight) SetCustom(colors []color.RGBA, brightness byte) error {
+	if len(colors) != 144 {
+		return ErrColorsMiscount
+	}
+	b.setCustomization(true)
+	err := b.requestEffectPages(WriteLEDEffects)
+	if err != nil {
+		return err
+	}
+	resp, err := b.handle.Read()
+	if err != nil {
+		return err
+	}
+	switch resp[3] {
+	case CmdNACK:
+		return ErrCmdNACK
+	case CmdACK:
+		break
+	default:
+		return ErrNotInSync
+	}
+	err = b.sendEffects()
+	if err != nil {
+		return err
+	}
+	err = b.sendCustom(colors)
+	if err != nil {
+		return err
+	}
+	m := effect.Mode{Code: 0, Brightness: brightness}
+	err = b.sendCurrentEffect(&m)
+	if err != nil {
+		return err
+	}
+	return b.endCommunication()
+}
+
 func (b *Backlight) Set(m effect.Mode) error {
 	b.setCustomization(false)
 
