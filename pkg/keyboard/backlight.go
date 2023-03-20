@@ -15,13 +15,13 @@ type Backlight struct {
 }
 
 // Get current effect
-func (b *Backlight) Get() (effect.Mode, error) {
-	current, _, err := b.GetEffects()
+func (b *Backlight) Get() (effect.Preset, error) {
+	current, _, err := b.GetPresets()
 	return current, err
 }
 
-// GetEffects reads all modes from device
-func (b *Backlight) GetEffects() (current effect.Mode, effects []effect.Mode, err error) {
+// GetPresets reads all presets from device
+func (b *Backlight) GetPresets() (current effect.Preset, presets []effect.Preset, err error) {
 	err = b.requestEffectPages(ReadEffects)
 	if err != nil {
 		return
@@ -39,23 +39,23 @@ func (b *Backlight) GetEffects() (current effect.Mode, effects []effect.Mode, er
 		remaining = 5
 	} else if buf[OffsetCRCLow] == EffectCRCLow && buf[OffsetCRCHigh] == EffectCRCHigh {
 		// Got first page, acting
-		m, err := parseEffects(buf, 4)
+		p, err := parsePresets(buf, 4)
 		if err != nil {
-			return current, m, err
+			return current, p, err
 		}
-		effects = append(effects, m...)
+		presets = append(presets, p...)
 		remaining = 4
 	} else {
 		// Not in sync
-		return current, effects, ErrNotInSync
+		return current, presets, ErrNotInSync
 	}
 
 	// Read modes, 4 or 5 pages
 	m, err := b.readEffectPages(remaining)
 	if err != nil {
-		return current, effects, err
+		return current, presets, err
 	}
-	effects = append(effects, m...)
+	presets = append(presets, m...)
 
 	// Skip padding and custom colors
 	for i := 0; i < 12; i++ {
@@ -67,7 +67,7 @@ func (b *Backlight) GetEffects() (current effect.Mode, effects []effect.Mode, er
 	}
 	current = m[0]
 	b.endCommunication()
-	return current, effects, nil
+	return current, presets, nil
 }
 
 func (b *Backlight) SetDebug(enabled bool) {
@@ -79,44 +79,44 @@ func (b *Backlight) Close() error {
 	return b.handle.Close()
 }
 
-func (b *Backlight) SetCustom(colors []color.RGBA, brightness byte) error {
-	if len(colors) != 144 {
-		return ErrColorsMiscount
-	}
-	b.setCustomization(true)
-	err := b.requestEffectPages(WriteLEDEffects)
-	if err != nil {
-		return err
-	}
-	resp, err := b.handle.Read()
-	if err != nil {
-		return err
-	}
-	switch resp[3] {
-	case CmdNACK:
-		return ErrCmdNACK
-	case CmdACK:
-		break
-	default:
-		return ErrNotInSync
-	}
-	err = b.sendEffects()
-	if err != nil {
-		return err
-	}
-	err = b.sendCustom(colors)
-	if err != nil {
-		return err
-	}
-	m := effect.Mode{Code: 0, Brightness: brightness}
-	err = b.sendCurrentEffect(&m)
-	if err != nil {
-		return err
-	}
-	return b.endCommunication()
-}
+// func (b *Backlight) SetCustom(colors []color.RGBA, brightness byte) error {
+// 	if len(colors) != 144 {
+// 		return ErrColorsMiscount
+// 	}
+// 	b.setCustomization(true)
+// 	err := b.requestEffectPages(WriteLEDEffects)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	resp, err := b.handle.Read()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	switch resp[3] {
+// 	case CmdNACK:
+// 		return ErrCmdNACK
+// 	case CmdACK:
+// 		break
+// 	default:
+// 		return ErrNotInSync
+// 	}
+// 	err = b.sendEffects()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	err = b.sendCustom(colors)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	m := effect.Mode{Code: 0, Brightness: brightness}
+// 	err = b.sendCurrentEffect(&m)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return b.endCommunication()
+// }
 
-func (b *Backlight) Set(m effect.Mode) error {
+func (b *Backlight) Set(p effect.Preset) error {
 	b.setCustomization(false)
 
 	err := b.requestEffectPages(WriteLEDEffects)
@@ -144,7 +144,7 @@ func (b *Backlight) Set(m effect.Mode) error {
 	if err != nil {
 		return err
 	}
-	err = b.sendCurrentEffect(&m)
+	err = b.sendCurrent(&p)
 	if err != nil {
 		return err
 	}
@@ -157,10 +157,10 @@ func (b *Backlight) printDebug(m string) {
 	}
 }
 
-func (b *Backlight) sendCurrentEffect(m *effect.Mode) error {
+func (b *Backlight) sendCurrent(p *effect.Preset) error {
 	b.printDebug("Sending current effect")
 	buf := make([]byte, EffectPageLength)
-	fillEffect(m, buf, 0)
+	fillPreset(p, buf, 0)
 	return b.handle.Send(buf)
 }
 
@@ -178,9 +178,15 @@ func (b *Backlight) sendEffects() error {
 				continue
 			}
 
-			m := effect.Modes[modeOffset]
+			preset := effect.NewPreset(
+				&effect.Modes[modeOffset],
+				effect.RandomColorValue,
+				effect.Fastest,
+				effect.Brightest,
+				effect.LeftToRight,
+			)
 
-			fillEffect(&m, buf, j*EffectPageLength)
+			fillPreset(&preset, buf, j*EffectPageLength)
 		}
 		err = b.handle.Send(buf)
 		if err != nil {
@@ -274,13 +280,12 @@ func (b *Backlight) setCustomization(active bool) error {
 	if err != nil {
 		return err
 	}
-	buf, err := b.handle.Read()
-	fmt.Println(buf)
+	_, err = b.handle.Read()
 	return err
 }
 
-func (b *Backlight) readEffectPages(n int) ([]effect.Mode, error) {
-	var effects []effect.Mode
+func (b *Backlight) readEffectPages(n int) ([]effect.Preset, error) {
+	var presets []effect.Preset
 	for i := 0; i < n; i++ {
 		count := 0
 		if i == n-1 {
@@ -288,21 +293,21 @@ func (b *Backlight) readEffectPages(n int) ([]effect.Mode, error) {
 		} else {
 			count = 4
 		}
-		m, err := b.readEffectPage(count)
+		p, err := b.readEffectPage(count)
 		if err != nil {
-			return effects, err
+			return presets, err
 		}
-		effects = append(effects, m...)
+		presets = append(presets, p...)
 	}
-	return effects, nil
+	return presets, nil
 }
 
-func (b *Backlight) readEffectPage(n int) ([]effect.Mode, error) {
+func (b *Backlight) readEffectPage(n int) ([]effect.Preset, error) {
 	buf, err := b.handle.Read()
 	if err != nil {
-		return []effect.Mode{}, err
+		return []effect.Preset{}, err
 	}
-	return parseEffects(buf, n)
+	return parsePresets(buf, n)
 }
 
 func Open(productId uint16) (Backlight, error) {

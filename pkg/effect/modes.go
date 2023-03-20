@@ -1,179 +1,168 @@
 package effect
 
-import (
-	"errors"
-	"image/color"
-)
+type ModeList []Mode
 
-// Mode represents Keychron keyboard backlight mode
-type Mode struct {
-	// Human readable mode name.
-	Name string
-	// Mode code. One of the effect code constants.
-	Code byte
-	// Mode color. The Alpha channel is ignored,
-	// except when its value is 0x55 (85) with all other values equal to 0.
-	Color color.RGBA
-	// Mode speed. Number in the range from MinSpeed to MaxSpeed.
-	Speed byte
-	// Mode brightness. Number in the range from MinBrightness to MaxBrightness.
-	Brightness byte
-	// Mode direction. Value from direction constants.
-	Direction EffectDirection
-}
-
-// Modes available on Keychron keyboards
-var Modes = []Mode{
-	{
-		Name:       "Static",
-		Code:       StaticMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-	},
-	{
-		Name:       "Keystroke light up",
-		Code:       KeystrokeLightUpMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-	},
-	{
-		Name:       "Keystroke dim",
-		Code:       KeystrokeDimMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-	},
-	{
-		Name:       "Sparkle",
-		Code:       SparkleMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      10,
-	},
-	{
-		Name:       "Rain",
-		Code:       RainMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Direction:  UpToDown,
-		Speed:      Slowest,
-	},
-	{
-		Name:       "Random colors",
-		Code:       RandomColorsMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-	},
-	{
-		Name:       "Breathing",
-		Code:       BreathingMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      7,
-	},
-	{
-		Name:       "Spectrum cycle",
-		Code:       SpectrumCycleMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-	},
-	{
-		Name:       "Ring gradient",
-		Code:       RingGradientMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-		Direction:  LeftToRight,
-	},
-	{
-		Name:       "Vertical gradient",
-		Code:       VerticalGradientMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-		Direction:  UpToDown,
-	},
-	{
-		Name:       "Horizontal gradient",
-		Code:       HorizontalGradientWaveMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-		Direction:  LeftToRight,
-	},
-	{
-		Name:       "Around edges",
-		Code:       AroundEdgesMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-		Direction:  LeftToRight,
-	},
-	{
-		Name:       "Keystroke horizontal lines",
-		Code:       KeystrokeHorizontalLinesMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-	},
-	{
-		Name:       "Keystroke tilted lines",
-		Code:       KeystrokeHorizontalLinesMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      9,
-	},
-	{
-		Name:       "Keystroke ripples",
-		Code:       KeystrokeRipplesMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      10,
-	},
-	{
-		Name:       "Sequence",
-		Code:       SequenceMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      Slowest,
-		Direction:  LeftToRight,
-	},
-	{
-		Name:       "Wave line",
-		Code:       WaveLineMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-	},
-	{
-		Name:       "Tilted lines",
-		Code:       TiltedLinesMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-	},
-	{
-		Name:       "Back and forth",
-		Code:       BackAndForthMode,
-		Color:      RandomColor,
-		Brightness: Brightest,
-		Speed:      5,
-		Direction:  LeftToRight,
-	},
-}
-
-// ErrModeNotFound means that the mode is not found.
-var ErrModeNotFound = errors.New("mode with desired code is not found")
-
-// Finds the mode by code. If the mode is not found, it returns an ErrModeNotFound error.
-func Get(code byte) (Mode, error) {
-	for i := range Modes {
-		if Modes[i].Code == code {
-			return Modes[i], nil
+func (m ModeList) GetByName(n string) (*Mode, error) {
+	for i := range m {
+		if m[i].Name == n {
+			mode := &m[i]
+			return mode, nil
 		}
 	}
-	return Mode{}, ErrModeNotFound
+	return nil, ErrNotFound
+}
+
+func (m ModeList) GetByCode(c byte) (*Mode, error) {
+	for i := range m {
+		if m[i].Code == c {
+			mode := &m[i]
+			return mode, nil
+		}
+	}
+	return nil, ErrNotFound
+}
+
+// Mode code constants.
+const (
+	CustomCode                   byte = 0x00
+	StaticCode                   byte = 0x01
+	KeystrokeLightUpCode         byte = 0x02
+	KeystrokeDimCode             byte = 0x03
+	SparkleCode                  byte = 0x04
+	RainCode                     byte = 0x05
+	RandomColorsCode             byte = 0x06
+	BreathingCode                byte = 0x07
+	SpectrumCycleCode            byte = 0x08
+	RingGradientCode             byte = 0x09
+	VerticalGradientCode         byte = 0x0A
+	HorizontalGradientCode       byte = 0x0B
+	AroundEdgesCode              byte = 0x0C
+	KeystrokeHorizontalLinesCode byte = 0x0D
+	KeystrokeTitledLinesCode     byte = 0x0E
+	KeystrokeRipplesCode         byte = 0x0F
+	SequenceCode                 byte = 0x10
+	WaveLineCode                 byte = 0x11
+	TiltedLinesCode              byte = 0x12
+	BackAndForthCode             byte = 0x13
+	LightsOffCode                byte = 0x80
+)
+
+var (
+	StaticMode = Mode{
+		"Static",
+		StaticCode,
+		SpecificColor | RandomColor,
+	}
+	KeystrokeLightUpMode = Mode{
+		"Keystroke light up",
+		KeystrokeLightUpCode,
+		SpecificColor | RandomColor,
+	}
+	KeystrokeDimMode = Mode{
+		"Keystroke dim",
+		KeystrokeDimCode,
+		SpecificColor | RandomColor,
+	}
+	SparkleMode = Mode{
+		"Sparkle",
+		SparkleCode,
+		SpecificColor | RandomColor,
+	}
+	RainMode = Mode{
+		"Rain",
+		RainCode,
+		SpecificColor | RandomColor,
+	}
+	RandomColorsMode = Mode{
+		"Random colors",
+		RandomColorsCode,
+		RandomColor,
+	}
+	BreathingMode = Mode{
+		"Breathing",
+		BreathingCode,
+		SpecificColor | RandomColor,
+	}
+	SpectrumCycleMode = Mode{
+		"Spectrum cycle",
+		SpectrumCycleCode,
+		RandomColor,
+	}
+	RingGradientMode = Mode{
+		"Ring gradient",
+		RingGradientCode,
+		SpecificColor | RandomColor | VerticalDirection,
+	}
+	VerticalGradientMode = Mode{
+		"Vertical gradient",
+		VerticalGradientCode,
+		SpecificColor | RandomColor | VerticalDirection,
+	}
+	HorizontalGradientMode = Mode{
+		"Horizontal gradient",
+		HorizontalGradientCode,
+		SpecificColor | RandomColor | HorizontalDirection,
+	}
+	AroundEdgesMode = Mode{
+		"Around edges",
+		AroundEdgesCode,
+		SpecificColor | RandomColor | HorizontalDirection,
+	}
+	KeystrokeHorizontalLinesMode = Mode{
+		"Keystroke horizontal lines",
+		KeystrokeHorizontalLinesCode,
+		SpecificColor | RandomColor,
+	}
+	KeystrokeTiltedLinesMode = Mode{
+		"Keystroke tilted lines",
+		KeystrokeTitledLinesCode,
+		SpecificColor | RandomColor,
+	}
+	KeystrokeRipplesMode = Mode{
+		"Keystroke ripples",
+		KeystrokeRipplesCode,
+		SpecificColor | RandomColor,
+	}
+	SequenceMode = Mode{
+		"Sequence",
+		SequenceCode,
+		SpecificColor | RandomColor | HorizontalDirection,
+	}
+	WaveLineMode = Mode{
+		"Wave line",
+		WaveLineCode,
+		SpecificColor | RandomColor,
+	}
+	TiltedLinesMode = Mode{
+		"Tilted lines",
+		TiltedLinesCode,
+		SpecificColor | RandomColor | HorizontalDirection,
+	}
+	BackAndForthMode = Mode{
+		"Back and forth",
+		BackAndForthCode,
+		SpecificColor | RandomColor | HorizontalDirection,
+	}
+)
+
+var Modes = ModeList{
+	StaticMode,
+	KeystrokeLightUpMode,
+	KeystrokeDimMode,
+	SparkleMode,
+	RainMode,
+	RandomColorsMode,
+	BreathingMode,
+	SpectrumCycleMode,
+	RingGradientMode,
+	VerticalGradientMode,
+	HorizontalGradientMode,
+	AroundEdgesMode,
+	KeystrokeHorizontalLinesMode,
+	KeystrokeTiltedLinesMode,
+	KeystrokeRipplesMode,
+	SequenceMode,
+	WaveLineMode,
+	TiltedLinesMode,
+	BackAndForthMode,
 }

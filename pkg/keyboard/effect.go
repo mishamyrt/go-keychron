@@ -1,53 +1,63 @@
 package keyboard
 
 import (
+	"image/color"
+
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 )
 
-func fillEffect(m *effect.Mode, target []byte, offset int) {
-	target[offset+OffsetCode] = m.Code
+func fillPreset(p *effect.Preset, target []byte, offset int) {
+	target[offset+OffsetCode] = p.Mode().Code
 
-	if effect.IsRandomColor(m.Color) {
+	if p.IsRandomColor() {
 		target[offset+OffsetRandomColor] = 1
 	} else {
-		target[offset+OffsetR] = m.Color.R
-		target[offset+OffsetG] = m.Color.G
-		target[offset+OffsetB] = m.Color.B
+		c := p.Color()
+		target[offset+OffsetR] = c.R
+		target[offset+OffsetG] = c.G
+		target[offset+OffsetB] = c.B
 	}
 
-	target[offset+OffsetBrightness] = m.Brightness
-	target[offset+OffsetSpeed] = m.Speed
-	target[offset+OffsetDirection] = m.Direction.Code()
+	target[offset+OffsetBrightness] = p.Brightness()
+	target[offset+OffsetSpeed] = p.Speed()
+	target[offset+OffsetDirection] = p.Direction().Code()
 
 	target[offset+OffsetCRCLow] = EffectCRCLow
 	target[offset+OffsetCRCHigh] = EffectCRCHigh
 }
 
-func parseEffects(buf []byte, count int) ([]effect.Mode, error) {
-	var modes []effect.Mode = make([]effect.Mode, count)
-	var err error
+func parsePresets(buf []byte, count int) ([]effect.Preset, error) {
+	var presets = make([]effect.Preset, count)
 	for i := 0; i < count; i++ {
 		offset := i * EffectPageLength
 		if buf[offset+OffsetCRCLow] != EffectCRCLow || buf[offset+OffsetCRCHigh] != EffectCRCHigh {
-			return modes, ErrCRCMismatch
+			return presets, ErrCRCMismatch
 		}
 
-		modes[i], err = effect.Get(buf[offset+OffsetCode])
+		m, err := effect.Modes.GetByCode(buf[offset+OffsetCode])
 		if err != nil {
-			return modes, err
+			return presets, err
 		}
+
+		presets[i].SetMode(m)
 
 		if buf[offset+OffsetRandomColor] == 1 {
-			modes[i].Color = effect.RandomColor
+			presets[i].SetRandomColor()
 		} else {
-			modes[i].Color.R = buf[offset+OffsetR]
-			modes[i].Color.G = buf[offset+OffsetG]
-			modes[i].Color.B = buf[offset+OffsetB]
+			presets[i].SetColor(color.RGBA{
+				buf[offset+OffsetR],
+				buf[offset+OffsetG],
+				buf[offset+OffsetB],
+				0,
+			})
 		}
 
-		modes[i].Brightness = buf[offset+OffsetBrightness]
-		modes[i].Speed = buf[offset+OffsetSpeed]
-		modes[i].Direction = effect.GetDirection(buf[offset+OffsetDirection])
+		presets[i].SetBrightness(buf[offset+OffsetBrightness])
+		presets[i].SetSpeed(buf[offset+OffsetSpeed])
+
+		presets[i].SetDirection(
+			effect.GetDirection(buf[offset+OffsetDirection]),
+		)
 	}
-	return modes, nil
+	return presets, nil
 }

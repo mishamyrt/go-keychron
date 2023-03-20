@@ -7,9 +7,23 @@ type EffectDirection byte
 const (
 	LeftToRight EffectDirection = iota
 	RightToLeft
-	DownToUp
-	UpToDown
+	BottomToUp
+	TopToBottom
 )
+
+func (d EffectDirection) String() string {
+	switch d {
+	case LeftToRight:
+		return "left-to-right"
+	case RightToLeft:
+		return "right-to-left"
+	case BottomToUp:
+		return "bottom-to-top"
+	case TopToBottom:
+		return "top-to-bottom"
+	}
+	return "<unknown>"
+}
 
 func (d EffectDirection) Code() byte {
 	switch d {
@@ -17,12 +31,20 @@ func (d EffectDirection) Code() byte {
 		return 0x00
 	case RightToLeft:
 		return 0x01
-	case DownToUp:
+	case BottomToUp:
 		return 0x02
-	case UpToDown:
+	case TopToBottom:
 		return 0x03
 	}
 	return 0xFF
+}
+
+func (d EffectDirection) IsHorizontal() bool {
+	return d == LeftToRight || d == RightToLeft
+}
+
+func (d EffectDirection) IsVertical() bool {
+	return d == TopToBottom || d == BottomToUp
 }
 
 func GetDirection(v byte) EffectDirection {
@@ -30,9 +52,9 @@ func GetDirection(v byte) EffectDirection {
 	case 0x01:
 		return RightToLeft
 	case 0x02:
-		return DownToUp
+		return BottomToUp
 	case 0x03:
-		return UpToDown
+		return TopToBottom
 	default:
 		return LeftToRight
 	}
