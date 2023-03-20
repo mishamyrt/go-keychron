@@ -31,7 +31,7 @@ func printPreset(p *effect.Preset) {
 	fmt.Printf("  Speed: %v\n", p.Speed())
 	fmt.Printf("  Brightness: %v\n", p.Brightness())
 	f := p.Mode().Features
-	if f.Supports(effect.HorizontalDirection) || f.Supports(effect.VerticalDirection) {
+	if f.SupportsAny(effect.HorizontalDirection, effect.VerticalDirection) {
 		fmt.Printf("  Direction: %v\n", p.Direction().String())
 	}
 }

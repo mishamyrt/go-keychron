@@ -2,8 +2,27 @@ package effect
 
 type Feature byte
 
-func (f Feature) Supports(x Feature) bool {
-	return f&x != 0
+type FeaturePredicate func(f Feature) bool
+
+func (f Feature) assert(features []Feature, assert FeaturePredicate, defaultExit bool) bool {
+	for i := range features {
+		if assert(features[i]) {
+			return !defaultExit
+		}
+	}
+	return defaultExit
+}
+
+func (f Feature) Supports(features ...Feature) bool {
+	return f.assert(features, func(feature Feature) bool {
+		return f&feature == 0
+	}, true)
+}
+
+func (f Feature) SupportsAny(features ...Feature) bool {
+	return f.assert(features, func(feature Feature) bool {
+		return f&feature != 0
+	}, false)
 }
 
 const (
