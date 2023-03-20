@@ -170,6 +170,7 @@ func (b *Backlight) sendEffects() error {
 	var buf []byte
 	var err error
 
+	presetCount := 0
 	for i := 0; i < 5; i++ { // 5 packets
 		buf = make([]byte, hid.PacketLength)
 		for j := 0; j < 4; j++ { // of 4 effects
@@ -178,14 +179,10 @@ func (b *Backlight) sendEffects() error {
 				continue
 			}
 
-			preset := effect.NewPreset(
-				&effect.Modes[modeOffset],
-				effect.RandomColorValue,
-				effect.Fastest,
-				0,
-			)
+			preset := effect.Presets[presetCount]
 
 			fillPreset(&preset, buf, j*EffectPageLength)
+			presetCount++
 		}
 		err = b.handle.Send(buf)
 		if err != nil {

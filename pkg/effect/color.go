@@ -14,3 +14,8 @@ var RandomColorValue = color.RGBA{
 func IsRandomColor(c color.RGBA) bool {
 	return c.R+c.G+c.B == 0 && c.A == randomValue
 }
+
+// RGB creates rgb color
+func RGB(r, g, b uint8) color.RGBA {
+	return color.RGBA{r, g, b, 0}
+}
