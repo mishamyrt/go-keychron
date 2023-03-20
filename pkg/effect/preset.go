@@ -103,9 +103,10 @@ func (p *Preset) SetDirection(d EffectDirection) error {
 
 func NewPreset(mode *Mode, color colorPkg.RGBA, speed byte, direction EffectDirection) Preset {
 	return Preset{
-		mode:      mode,
-		color:     color,
-		speed:     speed,
-		direction: direction,
+		mode:       mode,
+		color:      color,
+		speed:      speed,
+		brightness: Brightest,
+		direction:  direction,
 	}
 }

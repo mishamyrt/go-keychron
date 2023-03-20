@@ -17,13 +17,13 @@ func main() {
 	}
 	b.SetDebug(true)
 
-	p := effect.NewPreset(
-		&effect.RingGradientMode,
-		color.RGBA{0, 255, 255, 0},
+	MintRain := effect.NewPreset(
+		&effect.RainMode,
+		color.RGBA{0, 235, 47, 0},
 		effect.Slowest,
 		0,
 	)
-	err = b.Set(p)
+	err = b.Set(&MintRain)
 	if err != nil {
 		panic(err)
 	}

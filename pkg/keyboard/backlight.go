@@ -116,7 +116,7 @@ func (b *Backlight) Close() error {
 // 	return b.endCommunication()
 // }
 
-func (b *Backlight) Set(p effect.Preset) error {
+func (b *Backlight) Set(p *effect.Preset) error {
 	b.setCustomization(false)
 
 	err := b.requestEffectPages(WriteLEDEffects)
@@ -144,7 +144,7 @@ func (b *Backlight) Set(p effect.Preset) error {
 	if err != nil {
 		return err
 	}
-	err = b.sendCurrent(&p)
+	err = b.sendCurrent(p)
 	if err != nil {
 		return err
 	}
