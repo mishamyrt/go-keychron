@@ -1,10 +1,10 @@
 package effect
 
-import "image/color"
+import colorPkg "image/color"
 
 type Preset struct {
 	mode       *Mode
-	color      color.RGBA
+	color      colorPkg.RGBA
 	speed      byte
 	brightness byte
 	direction  EffectDirection
@@ -31,12 +31,12 @@ func (p *Preset) SetModeByCode(c byte) error {
 }
 
 // Color returns preset mode
-func (p *Preset) Color() color.RGBA {
+func (p *Preset) Color() colorPkg.RGBA {
 	return p.color
 }
 
 // SetColor sets color to preset
-func (p *Preset) SetColor(c color.RGBA) error {
+func (p *Preset) SetColor(c colorPkg.RGBA) error {
 	if !p.mode.Features.Supports(SpecificColor) {
 		return NewErrNotSupported("specific color")
 	}
@@ -101,12 +101,11 @@ func (p *Preset) SetDirection(d EffectDirection) error {
 	return nil
 }
 
-func NewPreset(m *Mode, c color.RGBA, s, b byte, d EffectDirection) Preset {
+func NewPreset(mode *Mode, color colorPkg.RGBA, speed byte, direction EffectDirection) Preset {
 	return Preset{
-		mode:       m,
-		color:      c,
-		speed:      s,
-		brightness: b,
-		direction:  d,
+		mode:      mode,
+		color:     color,
+		speed:     speed,
+		direction: direction,
 	}
 }

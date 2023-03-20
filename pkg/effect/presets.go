@@ -2,12 +2,11 @@ package effect
 
 var Presets = []Preset{}
 
-var Static = NewPreset(&StaticMode, RandomColorValue, 0x5, Brightest, 0)
-var KeystrokeLightUp = NewPreset(&StaticMode, RandomColorValue, 0x5, Brightest, 0)
+var Static = NewPreset(&StaticMode, RandomColorValue, 0, 0)
+var KeystrokeLightUp = NewPreset(&KeystrokeLightUpMode, RandomColorValue, Slowest, 0)
+var KeystrokeDim = NewPreset(&KeystrokeLightUpMode, RandomColorValue, Slowest, 0)
+var Sparkle = NewPreset(&SparkleMode, RandomColorValue, Slowest, 0)
 
-// StaticMode,
-// KeystrokeLightUpMode,
-// KeystrokeDimMode,
 // SparkleMode,
 // RainMode,
 // RandomColorsMode,

@@ -182,8 +182,7 @@ func (b *Backlight) sendEffects() error {
 				&effect.Modes[modeOffset],
 				effect.RandomColorValue,
 				effect.Fastest,
-				effect.Brightest,
-				effect.LeftToRight,
+				0,
 			)
 
 			fillPreset(&preset, buf, j*EffectPageLength)

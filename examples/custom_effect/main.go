@@ -21,7 +21,6 @@ func main() {
 		&effect.RingGradientMode,
 		color.RGBA{0, 255, 255, 0},
 		effect.Slowest,
-		effect.Brightest,
 		0,
 	)
 	err = b.Set(p)
