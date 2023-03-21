@@ -10,14 +10,6 @@ import (
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
 )
 
-// type Preset struct {
-// 	mode       *Mode
-// 	color      color.RGBA
-// 	speed      byte
-// 	brightness byte
-// 	direction  EffectDirection
-// }
-
 func formatColor(c color.RGB) string {
 	if c.IsRandom() {
 		return "random"
