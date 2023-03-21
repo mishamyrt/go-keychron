@@ -5,9 +5,10 @@ import (
 
 	"github.com/mishamyrt/go-keychron"
 	"github.com/mishamyrt/go-keychron/pkg/color"
-	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
+	"github.com/mishamyrt/go-keychron/pkg/mode"
+	"github.com/mishamyrt/go-keychron/pkg/preset"
 )
 
 func formatColor(c color.RGB) string {
@@ -17,13 +18,13 @@ func formatColor(c color.RGB) string {
 	return fmt.Sprintf("rgb(%v, %v, %v)", c.R, c.G, c.B)
 }
 
-func printPreset(p *effect.Preset) {
+func printPreset(p *preset.Preset) {
 	fmt.Printf("  Mode: %v\n", p.Mode().Name)
 	fmt.Printf("  Color: %v\n", formatColor(p.Color()))
 	fmt.Printf("  Speed: %v\n", p.Speed())
 	fmt.Printf("  Brightness: %v\n", p.Brightness())
 	f := p.Mode().Features
-	if f.SupportsAny(effect.HorizontalDirection, effect.VerticalDirection) {
+	if f.SupportsAny(mode.VerticalDirection, mode.HorizontalDirection) {
 		fmt.Printf("  Direction: %v\n", p.Direction().String())
 	}
 }

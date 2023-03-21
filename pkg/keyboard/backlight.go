@@ -5,8 +5,9 @@ import (
 	"image/color"
 	"log"
 
-	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
+	"github.com/mishamyrt/go-keychron/pkg/mode"
+	"github.com/mishamyrt/go-keychron/pkg/preset"
 )
 
 type Backlight struct {
@@ -15,13 +16,13 @@ type Backlight struct {
 }
 
 // Get current effect
-func (b *Backlight) Get() (effect.Preset, error) {
+func (b *Backlight) Get() (preset.Preset, error) {
 	current, _, err := b.GetPresets()
 	return current, err
 }
 
 // GetPresets reads all presets from device
-func (b *Backlight) GetPresets() (current effect.Preset, presets []effect.Preset, err error) {
+func (b *Backlight) GetPresets() (current preset.Preset, presets preset.PresetList, err error) {
 	err = b.requestEffectPages(ReadEffects)
 	if err != nil {
 		return
@@ -116,7 +117,7 @@ func (b *Backlight) Close() error {
 // 	return b.endCommunication()
 // }
 
-func (b *Backlight) Set(p *effect.Preset) error {
+func (b *Backlight) Set(p *preset.Preset) error {
 	b.setCustomization(false)
 
 	err := b.requestEffectPages(WriteLEDEffects)
@@ -157,7 +158,7 @@ func (b *Backlight) printDebug(m string) {
 	}
 }
 
-func (b *Backlight) sendCurrent(p *effect.Preset) error {
+func (b *Backlight) sendCurrent(p *preset.Preset) error {
 	b.printDebug("Sending current effect")
 	buf := make([]byte, EffectPageLength)
 	fillPreset(p, buf, 0)
@@ -175,11 +176,11 @@ func (b *Backlight) sendEffects() error {
 		buf = make([]byte, hid.PacketLength)
 		for j := 0; j < 4; j++ { // of 4 effects
 			modeOffset := j + (i * 4)
-			if modeOffset >= len(effect.Modes) {
+			if modeOffset >= len(mode.List) {
 				continue
 			}
 
-			preset := effect.Presets[presetCount]
+			preset := preset.List[presetCount]
 
 			fillPreset(&preset, buf, j*EffectPageLength)
 			presetCount++
@@ -280,8 +281,8 @@ func (b *Backlight) setCustomization(active bool) error {
 	return err
 }
 
-func (b *Backlight) readEffectPages(n int) ([]effect.Preset, error) {
-	var presets []effect.Preset
+func (b *Backlight) readEffectPages(n int) (preset.PresetList, error) {
+	var presets preset.PresetList
 	for i := 0; i < n; i++ {
 		count := 0
 		if i == n-1 {
@@ -298,10 +299,10 @@ func (b *Backlight) readEffectPages(n int) ([]effect.Preset, error) {
 	return presets, nil
 }
 
-func (b *Backlight) readEffectPage(n int) ([]effect.Preset, error) {
+func (b *Backlight) readEffectPage(n int) (preset.PresetList, error) {
 	buf, err := b.handle.Read()
 	if err != nil {
-		return []effect.Preset{}, err
+		return preset.PresetList{}, err
 	}
 	return parsePresets(buf, n)
 }

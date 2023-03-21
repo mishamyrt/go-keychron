@@ -1,11 +1,8 @@
-package effect
+package preset
 
 import (
-	"errors"
 	"fmt"
 )
-
-var ErrNotFound = errors.New("mode is not found")
 
 func NewErrNotSupported(text string) error {
 	return fmt.Errorf("request feature is not supported: %v", text)

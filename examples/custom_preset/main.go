@@ -3,9 +3,10 @@ package main
 import (
 	"github.com/mishamyrt/go-keychron"
 	"github.com/mishamyrt/go-keychron/pkg/color"
-	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
+	"github.com/mishamyrt/go-keychron/pkg/mode"
+	"github.com/mishamyrt/go-keychron/pkg/preset"
 )
 
 func main() {
@@ -16,10 +17,10 @@ func main() {
 	}
 	b.SetDebug(true)
 
-	MintRain := effect.NewPreset(
-		&effect.RainMode,
+	MintRain := preset.New(
+		&mode.Rain,
 		color.New(0, 235, 47),
-		effect.Slowest,
+		0,
 		0,
 	)
 	err = b.Set(&MintRain)

@@ -1,4 +1,4 @@
-package effect
+package preset
 
 // EffectDirection is the type used to define the direction of the effect.
 type EffectDirection byte

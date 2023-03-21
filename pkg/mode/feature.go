@@ -1,10 +1,10 @@
-package effect
+package mode
 
 type Feature byte
 
-type FeaturePredicate func(f Feature) bool
+type predicate func(f Feature) bool
 
-func (f Feature) assert(features []Feature, assert FeaturePredicate, defaultExit bool) bool {
+func (f Feature) assert(features []Feature, assert predicate, defaultExit bool) bool {
 	for i := range features {
 		if assert(features[i]) {
 			return !defaultExit
@@ -32,10 +32,3 @@ const (
 	HorizontalDirection
 	Speed
 )
-
-// Mode represents Keychron keyboard backlight mode
-type Mode struct {
-	Name     string
-	Code     byte
-	Features Feature
-}

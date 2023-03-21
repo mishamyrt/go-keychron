@@ -2,12 +2,13 @@ package keyboard
 
 import (
 	"github.com/mishamyrt/go-keychron/pkg/color"
-	"github.com/mishamyrt/go-keychron/pkg/effect"
+	"github.com/mishamyrt/go-keychron/pkg/mode"
+	"github.com/mishamyrt/go-keychron/pkg/preset"
 )
 
-type EffectPage effect.PresetList
+type EffectPage preset.PresetList
 
-func fillPreset(p *effect.Preset, target []byte, offset int) {
+func fillPreset(p *preset.Preset, target []byte, offset int) {
 	target[offset+OffsetCode] = p.Mode().Code
 
 	if p.IsRandomColor() {
@@ -27,15 +28,15 @@ func fillPreset(p *effect.Preset, target []byte, offset int) {
 	target[offset+OffsetCRCHigh] = EffectCRCHigh
 }
 
-func parsePresets(buf []byte, count int) ([]effect.Preset, error) {
-	var presets = make([]effect.Preset, count)
+func parsePresets(buf []byte, count int) (preset.PresetList, error) {
+	var presets = make(preset.PresetList, count)
 	for i := 0; i < count; i++ {
 		offset := i * EffectPageLength
 		if buf[offset+OffsetCRCLow] != EffectCRCLow || buf[offset+OffsetCRCHigh] != EffectCRCHigh {
 			return presets, ErrCRCMismatch
 		}
 
-		m, err := effect.Modes.GetByCode(buf[offset+OffsetCode])
+		m, err := mode.ByCode(buf[offset+OffsetCode])
 		if err != nil {
 			return presets, err
 		}
@@ -56,7 +57,7 @@ func parsePresets(buf []byte, count int) ([]effect.Preset, error) {
 		presets[i].SetSpeed(buf[offset+OffsetSpeed])
 
 		presets[i].SetDirection(
-			effect.GetDirection(buf[offset+OffsetDirection]),
+			preset.GetDirection(buf[offset+OffsetDirection]),
 		)
 	}
 	return presets, nil
