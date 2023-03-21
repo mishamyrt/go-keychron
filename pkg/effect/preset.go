@@ -1,10 +1,10 @@
 package effect
 
-import colorPkg "image/color"
+import "github.com/mishamyrt/go-keychron/pkg/color"
 
 type Preset struct {
 	mode       *Mode
-	color      colorPkg.RGBA
+	color      color.RGB
 	speed      byte
 	brightness byte
 	direction  EffectDirection
@@ -31,17 +31,14 @@ func (p *Preset) SetModeByCode(c byte) error {
 }
 
 // Color returns preset mode
-func (p *Preset) Color() colorPkg.RGBA {
+func (p *Preset) Color() color.RGB {
 	return p.color
 }
 
 // SetColor sets color to preset
-func (p *Preset) SetColor(c colorPkg.RGBA) error {
+func (p *Preset) SetColor(c color.RGB) error {
 	if !p.mode.Features.Supports(SpecificColor) {
 		return NewErrNotSupported("specific color")
-	}
-	if c.A != 0 && !IsRandomColor(c) {
-		return NewErrNotSupported("color alpha channel")
 	}
 	p.color = c
 	return nil
@@ -49,12 +46,12 @@ func (p *Preset) SetColor(c colorPkg.RGBA) error {
 
 // SetRandomColor sets random color to preset
 func (p *Preset) SetRandomColor() {
-	p.color = RandomColorValue
+	p.color = color.Random
 }
 
 // IsRandomColor checks if random color set to preset
 func (p *Preset) IsRandomColor() bool {
-	return IsRandomColor(p.color)
+	return p.color.IsRandom()
 }
 
 // Speed returns preset speed
@@ -101,7 +98,7 @@ func (p *Preset) SetDirection(d EffectDirection) error {
 	return nil
 }
 
-func NewPreset(mode *Mode, color colorPkg.RGBA, speed byte, direction EffectDirection) Preset {
+func NewPreset(mode *Mode, color color.RGB, speed uint8, direction EffectDirection) Preset {
 	return Preset{
 		mode:       mode,
 		color:      color,

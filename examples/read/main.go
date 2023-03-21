@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/mishamyrt/go-keychron"
+	"github.com/mishamyrt/go-keychron/pkg/color"
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
@@ -18,8 +18,8 @@ import (
 // 	direction  EffectDirection
 // }
 
-func formatColor(c color.RGBA) string {
-	if effect.IsRandomColor(c) {
+func formatColor(c color.RGB) string {
+	if c.IsRandom() {
 		return "random"
 	}
 	return fmt.Sprintf("rgb(%v, %v, %v)", c.R, c.G, c.B)

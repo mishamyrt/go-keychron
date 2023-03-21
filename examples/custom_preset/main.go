@@ -1,9 +1,8 @@
 package main
 
 import (
-	"image/color"
-
 	"github.com/mishamyrt/go-keychron"
+	"github.com/mishamyrt/go-keychron/pkg/color"
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 	"github.com/mishamyrt/go-keychron/pkg/hid"
 	"github.com/mishamyrt/go-keychron/pkg/keyboard"
@@ -19,7 +18,7 @@ func main() {
 
 	MintRain := effect.NewPreset(
 		&effect.RainMode,
-		color.RGBA{0, 235, 47, 0},
+		color.New(0, 235, 47),
 		effect.Slowest,
 		0,
 	)

@@ -1,10 +1,11 @@
 package keyboard
 
 import (
-	"image/color"
-
+	"github.com/mishamyrt/go-keychron/pkg/color"
 	"github.com/mishamyrt/go-keychron/pkg/effect"
 )
+
+type EffectPage effect.PresetList
 
 func fillPreset(p *effect.Preset, target []byte, offset int) {
 	target[offset+OffsetCode] = p.Mode().Code
@@ -44,12 +45,11 @@ func parsePresets(buf []byte, count int) ([]effect.Preset, error) {
 		if buf[offset+OffsetRandomColor] == 1 {
 			presets[i].SetRandomColor()
 		} else {
-			presets[i].SetColor(color.RGBA{
+			presets[i].SetColor(color.New(
 				buf[offset+OffsetR],
 				buf[offset+OffsetG],
 				buf[offset+OffsetB],
-				0,
-			})
+			))
 		}
 
 		presets[i].SetBrightness(buf[offset+OffsetBrightness])
