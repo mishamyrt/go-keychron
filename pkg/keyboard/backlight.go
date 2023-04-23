@@ -307,6 +307,46 @@ func (b *Backlight) readEffectPage(n int) (preset.PresetList, error) {
 	return parsePresets(buf, n)
 }
 
+func (b *Backlight) trySync() error {
+	err := b.Sync()
+	if err != nil {
+		b.endCommunication()
+		b.endCommunication()
+		return b.endCommunication()
+	}
+	return nil
+}
+
+// GetSync tries to restore connection after ErrNotInSync error.
+// Returns `true` if connection is restored
+func (b *Backlight) GetSync() bool {
+	var err error
+	for i := 0; i < 5; i++ {
+		err = b.trySync()
+		if err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func (b *Backlight) Sync() error {
+	err := b.handle.Send([]byte{PacketHeader, ReadInformation})
+	if err != nil {
+		return err
+	}
+
+	buf, err := b.handle.Read()
+	if err != nil {
+		return err
+	}
+	if buf[1] != ReadInformation || buf[3] != CmdACK {
+		fmt.Println("err on first read", buf)
+		return ErrNotInSync
+	}
+	return b.endCommunication()
+}
+
 func Open(productId uint16) (Backlight, error) {
 	h, err := hid.Open(productId)
 	return Backlight{handle: h}, err

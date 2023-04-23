@@ -5,6 +5,7 @@ const CustomColorHeader = 0x80
 
 const (
 	CommunicationEnd     = 0x02
+	ReadInformation      = 0x05
 	ReadEffects          = 0x12
 	WriteLEDEffects      = 0x13
 	TurnOnCustomization  = 0x18
